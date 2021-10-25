@@ -1,24 +1,25 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Game;
 using UnityEngine;
 
 public class ClickMechanics : MonoBehaviour
 {
-    [Header("Количество набранных очков")]
-    public int points = 0;
+    [SerializeField] private SpawnBehaviour _spawner;
+    [SerializeField] private MainMechanics _main;
+    
+    [Header("РљРѕР»РёС‡РµСЃС‚РІРѕ РЅР°Р±СЂР°РЅРЅС‹С… РѕС‡РєРѕРІ")]
+    private Game.Points _Points;
 
     private Vector2 mousePos;
     private RaycastHit2D hitObject;
 
-    private Dictionary<Vector2, bool> fullDictionary;
-
-    // Start is called before the first frame update
-    void Start()
+    private void OnEnable()
     {
-        fullDictionary = GetComponent<MainMechanics>().fullDictionary;
+        _Points = _main._points;
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (Input.GetMouseButtonDown(0))
@@ -29,14 +30,14 @@ public class ClickMechanics : MonoBehaviour
             {
                 if (hitObject.collider.gameObject.name == "Eye")
                 {
-                    points += hitObject.collider.GetComponent<InflateMechanics>().GetPoints();
-                    fullDictionary[(Vector2)hitObject.collider.transform.parent.position] = false;
+                    _Points.points += hitObject.collider.GetComponent<InflateMechanics>().GetPoints(mousePos);
+                    _spawner.clearSpawnPoint((Vector2)hitObject.collider.transform.parent.position);
                     Destroy(hitObject.collider.transform.parent.gameObject);
                 }
             }
             else
             {
-                points += -50;
+                _Points.points += -50;
             }
         }
     }

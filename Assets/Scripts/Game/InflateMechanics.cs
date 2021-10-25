@@ -14,7 +14,7 @@ public enum eyeTypes
 
 public class InflateMechanics : MonoBehaviour
 {
-    [HideInInspector] public Dictionary<Vector2, bool> fullDictionary = new Dictionary<Vector2, bool>();
+    private SpawnBehaviour _spawner;
 
     [Header("Вероятности появления определённых бомб")]
     [SerializeField] private int ProbGreen = 50;
@@ -46,6 +46,7 @@ public class InflateMechanics : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        _spawner = GameObject.FindWithTag("MainObject").GetComponent<SpawnBehaviour>();
         startTime = Time.time;
         SR = GetComponent<SpriteRenderer>();
         SRPupil = transform.GetChild(0).GetComponent<SpriteRenderer>();
@@ -61,7 +62,7 @@ public class InflateMechanics : MonoBehaviour
     {
         if (upTime > destroyTime)
         {
-            fullDictionary[parentPosition] = false;
+            _spawner.clearSpawnPoint(parentPosition);
             Destroy(transform.parent.gameObject);
         }
 
@@ -141,25 +142,34 @@ public class InflateMechanics : MonoBehaviour
         }
     }
 
-    public int GetPoints()
+    public int GetPoints(Vector2 mP)
     {
         int points = 0;
         switch (_eyeType) {
             case eyeTypes.GREEN:
-                points = (int)(100 * upTime / destroyTime);
+                points = timePointsCalculation(100, 100) + accuracyPointsCalculation(mP, 100);
                 break;
             case eyeTypes.YELLOW:
-                points = 100 + (int)(100 * upTime / destroyTime);
+                points = timePointsCalculation(200, 100) + accuracyPointsCalculation(mP, 200);
                 break;
             case eyeTypes.RED:
-                points = 200 + (int)(200 * upTime / destroyTime);
+                points = timePointsCalculation(400, 200) + accuracyPointsCalculation(mP, 200);
                 break;
             case eyeTypes.BOMB:
                 points = -1000;
                 break;
         }
-
         return points;
+    }
+
+    private int timePointsCalculation(int max, int maxmmin)
+    {
+        return max - (int) (maxmmin * upTime / destroyTime);
+    }
+
+    private int accuracyPointsCalculation(Vector2 mouse, int max)
+    {
+        return max - (int)(max*((mouse - (Vector2) transform.position).magnitude)/(gameObject.GetComponent<CircleCollider2D>().bounds.extents.x));
     }
 
 }
